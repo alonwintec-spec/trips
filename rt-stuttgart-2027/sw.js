@@ -1,5 +1,5 @@
 // rt-stuttgart-2027 service worker — offline shell + map tiles
-const SHELL_CACHE = 'rt-shell-v1';
+const SHELL_CACHE = 'rt-shell-v2';
 const TILE_CACHE = 'rt-tiles-v1';
 const ASSET_CACHE = 'rt-assets-v1';
 

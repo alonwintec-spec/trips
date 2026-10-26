@@ -1,5 +1,5 @@
 // munich-bau-2027 service worker — offline shell + map tiles
-const SHELL_CACHE = 'muc-shell-v2';
+const SHELL_CACHE = 'muc-shell-v3';
 const TILE_CACHE = 'muc-tiles-v1';
 const ASSET_CACHE = 'muc-assets-v1';
 
