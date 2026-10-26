@@ -143,7 +143,7 @@ $LINK
       <h1>אלון וברקן · ציריך ← ונטו</h1>
       <div class="dates">ראשון 1.11 – שלישי 3.11.2026 · Astec · Fabbio · Bettio</div>
     </div>
-    <button class="refreshbtn" id="refreshbtn">🔄 1.7</button>
+    <button class="refreshbtn" id="refreshbtn">🔄 1.8</button>
   </div>
   <div class="homebase">🤝 יום שני 2.11: 09:00 Astec · 11:00 Fabbio Design · 15:00 Bettio<br>🕐 שוויץ ואיטליה: שעה אחת אחרי ישראל</div>
 </header>
@@ -264,6 +264,12 @@ $LINK
         <div class="desc"><b>Antony Palace Hotel · Venice Airport</b> ★★★★<br>Via Mattei 26, Marcon · <a href="tel:+390415962301">‎+39 041 596 2301</a><br>8 ק״מ (כ-8 דקות נסיעה) משדה התעופה, ובמרקון כמו Bettio.<br>צ׳ק-אין 14:00–23:30 · צ׳ק-אאוט עד 12:00 · 2 חדרי Executive (זוגי/טוויין) · קבלה 24 שעות.<br>🍳 ארוחת בוקר 06:00–10:00 (לא כלולה, בתשלום) · ארוחת ערב 19:00–22:00, מומלץ להזמין · בר 17:00–23:00 · ספא וחדר כושר 10:00–22:00.<br>🅿️ חניה €5 ליום, בלי הזמנה מראש · 🚐 שאטל לשדה בתשלום, 05:10–22:30, מזמינים בקבלה · 🚆 תחנת Gaggio Porta Est (רכבת לוונציה) 700 מ׳ הליכה.<br>💶 €228.24 (חדרים €202.04 + מע״מ €20.20 + מס עירוני €6) · Booking מחייבים את הכרטיס אוטומטית · ביטול חינם עד שבת 31.10 · הוזמן ב-Booking, שני החדרים על שם אלון.</div>
         <a class="maplink" href="https://www.google.com/maps/search/?api=1&query=Antony+Palace+Hotel+Marcon">ניווט למלון</a>
         <div class="tags"><span class="tag ok">הוזמן ✓ · מספר ההזמנה במייל של אלון</span></div>
+      </div>
+      <div class="stop big">
+        <div class="time">19:00 / 20:00</div>
+        <h3>🍽 ארוחת ערב · Carbone עם דניס</h3>
+        <div class="desc">שולחן במסעדת Carbone, אלון וברקן עם דניס.</div>
+        <div class="tags"><span class="tag ok">הוזמן ✓</span><span class="tag todo">⏳ השעה (19:00 או 20:00) והכתובת: שאלנו את ברקן</span></div>
       </div>
     </div>
     <div class="dayroutes">
@@ -399,7 +405,7 @@ $LINK
   </main>
 </div>
 
-<footer>נבנה עם קלוד · אוקטובר 2026 · נסיעה טובה! ✈️ · גרסה 1.7</footer>
+<footer>נבנה עם קלוד · אוקטובר 2026 · נסיעה טובה! ✈️ · גרסה 1.8</footer>
 
 <div class="bottomnav">
   <button class="bn active" data-view="view-days"><span class="ic">🗓</span>מסלול</button>
@@ -455,7 +461,7 @@ document.querySelectorAll('.check').forEach(row=>{
 // ---- now card (Europe/Rome = Zurich time) ----
 const tripSchedule={
  '2026-11-01':[['15:00','נתב״ג טרמינל 3'],['18:00','LX253 לציריך ✈️'],['21:25','נחיתה · ברגל ל-Hyatt 🏨']],
- '2026-11-02':[['06:30','שדה התעופה ציריך'],['07:35','LX1660 לוונציה ✈️'],['08:40','נחיתה · Sixt 🚗'],['09:00','Astec 🏭'],['11:00','Fabbio Design 🪟'],['13:00','צהריים 🍝'],['15:00','Bettio 🦟'],['18:00','Antony Palace 🏨']],
+ '2026-11-02':[['06:30','שדה התעופה ציריך'],['07:35','LX1660 לוונציה ✈️'],['08:40','נחיתה · Sixt 🚗'],['09:00','Astec 🏭'],['11:00','Fabbio Design 🪟'],['13:00','צהריים 🍝'],['15:00','Bettio 🦟'],['18:00','Antony Palace 🏨'],['19:00','Carbone עם דניס 🍽']],
  '2026-11-03':[['08:00','החזרת הרכב ב-Sixt 🚗'],['09:35','LX1661 לציריך ✈️'],['10:45','נחיתה בציריך · ביקורת דרכונים'],['12:05','LX252 הביתה ✈️'],['16:55','נתב״ג 🏠']]
 };
 function renderNowCard(){
