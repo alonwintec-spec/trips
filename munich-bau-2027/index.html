@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#003A70">
+<meta name="robots" content="noindex, nofollow">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="BAU מינכן">
+<title>BAU מינכן · אלון וברקן · 10–13.1.2027</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;800&family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+  :root{
+    --ink:#1C1C1B; --paper:#FFFFFF; --soft:#F3F4F6; --line:#E5E7EB; --muted:#6B7280;
+    --main:#003A70; --sky:#0098D4; --bau:#C8102E; --slate:#5B6770; --green:#007D32;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Heebo',system-ui,-apple-system,sans-serif;
+    background:var(--paper); color:var(--ink);
+    padding-bottom:calc(76px + env(safe-area-inset-bottom));
+  }
+  /* ---------- header ---------- */
+  header{
+    background:var(--main); color:#fff;
+    padding:calc(14px + env(safe-area-inset-top)) 18px 16px;
+  }
+  .brand{display:flex;align-items:center;gap:12px}
+  .badge{
+    width:52px;height:52px;flex:none;border-radius:12px;overflow:hidden;
+    background:repeating-conic-gradient(#fff 0 25%,#0098D4 0 50%) 0 0/13px 13px;
+    box-shadow:0 2px 8px rgba(0,0,0,.28);display:flex;align-items:center;justify-content:center;
+  }
+  .badge span{background:var(--main);color:#fff;font-family:'Rubik';font-weight:800;font-size:13px;padding:2px 5px;border-radius:5px;letter-spacing:.5px}
+  header h1{font-family:'Rubik';font-weight:800;font-size:21px;line-height:1.15}
+  header .dates{font-size:13px;opacity:.85;font-weight:300;margin-top:2px}
+  .refreshbtn{
+    margin-inline-start:auto;flex:none;align-self:center;
+    background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.35);
+    font-family:'Rubik';font-weight:600;font-size:12px;border-radius:999px;
+    padding:6px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;
+  }
+  .refreshbtn:active{background:rgba(255,255,255,.3)}
+  .homebase{
+    margin-top:12px;background:rgba(255,255,255,.12);border-radius:10px;
+    padding:9px 12px;font-size:13px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+  }
+  .homebase a{color:#fff;font-weight:500;text-decoration:underline;text-underline-offset:2px}
+  .safetop{
+    position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top);
+    background:var(--main);z-index:2000;pointer-events:none;
+  }
+  /* ---------- day selector ---------- */
+  nav.days{
+    position:sticky;top:env(safe-area-inset-top);z-index:20;background:#fff;
+    display:flex;gap:8px;overflow-x:auto;padding:12px 16px;
+    border-bottom:1px solid var(--line);
+    -webkit-overflow-scrolling:touch;scrollbar-width:none;
+  }
+  nav.days::-webkit-scrollbar{display:none}
+  .wx{margin-top:8px;font-size:13px;font-weight:600;color:#0f2d4d;background:#e8f1fa;border-radius:10px;padding:7px 10px;line-height:1.45}
+  .daychip{
+    flex:none;border:2px solid var(--line);background:#fff;border-radius:999px;
+    padding:7px 14px;font-family:'Rubik';font-weight:600;font-size:14px;color:var(--ink);
+    display:flex;align-items:center;gap:7px;cursor:pointer;white-space:nowrap;
+    transition:all .15s;
+  }
+  .daychip .dot{width:11px;height:11px;border-radius:50%;background:var(--c)}
+  .daychip.active{border-color:var(--c);background:var(--c);color:#fff}
+  .daychip.active .dot{background:#fff}
+  /* ---------- day panels ---------- */
+  main{max-width:640px;margin:0 auto}
+  .panel{display:none;padding:18px 18px 8px;animation:fade .25s ease}
+  .panel.show{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .dayhead{margin-bottom:6px}
+  .dayhead .eyebrow{
+    display:inline-block;font-family:'Rubik';font-weight:800;font-size:11px;color:#fff;
+    background:var(--c);padding:3px 10px;border-radius:4px;letter-spacing:.5px;
+  }
+  .dayhead h2{font-family:'Rubik';font-weight:800;font-size:24px;margin-top:8px}
+  .dayhead p{color:var(--muted);font-size:14px;margin-top:3px;font-weight:300}
+  /* ---------- timeline ---------- */
+  .tline{position:relative;margin:20px 0 10px;padding-right:26px}
+  .tline::before{
+    content:'';position:absolute;right:8px;top:10px;bottom:10px;width:7px;
+    background:var(--c);border-radius:4px;
+  }
+  .stop{position:relative;padding:0 16px 24px 0}
+  .stop:last-child{padding-bottom:6px}
+  .stop::before{
+    content:'';position:absolute;right:-25px;top:4px;width:15px;height:15px;
+    background:#fff;border:4px solid var(--c);border-radius:50%;z-index:1;
+  }
+  .stop.big::before{width:19px;height:19px;right:-27px;top:2px;border-width:5px}
+  .stop .time{font-family:'Rubik';font-weight:800;font-size:13px;color:var(--c);letter-spacing:.3px}
+  .stop h3{font-family:'Rubik';font-weight:600;font-size:16.5px;margin:2px 0 3px}
+  .stop .desc{font-size:14px;color:#3F4450;line-height:1.55;font-weight:300}
+  .stop .desc b{font-weight:500}
+  .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .tag{
+    font-size:12px;font-weight:500;border-radius:6px;padding:3px 9px;
+    background:var(--soft);color:#374151;display:inline-flex;align-items:center;gap:4px;
+  }
+  .tag.ticket{background:#FEF3C7;color:#92400E}
+  .tag.todo{background:#FEE2E2;color:#991B1B}
+  a.maplink{
+    display:inline-flex;align-items:center;gap:4px;margin-top:7px;margin-inline-end:12px;
+    font-size:13px;font-weight:500;color:var(--c);text-decoration:none;
+  }
+  a.maplink::before{content:'📍';font-size:12px}
+  .seatcard{
+    margin-top:9px;border:1.5px dashed var(--c);border-radius:10px;padding:9px 12px;
+    font-size:13px;background:#fff;display:flex;flex-wrap:wrap;gap:5px 16px;
+  }
+  .seatcard span b{font-family:'Rubik';font-weight:600}
+  /* tappable background info */
+  .stop.hasbg{cursor:pointer}
+  .stop.hasbg h3::after{content:' ℹ️';font-size:11px;opacity:.45}
+  .stop .bg{
+    display:none;margin-top:8px;padding:9px 12px;border-radius:10px;
+    background:var(--soft);font-size:13px;line-height:1.55;color:#3F4450;font-weight:300;
+  }
+  .stop.open .bg{display:block}
+  /* ---------- cards ---------- */
+  .card{border:1px solid var(--line);border-radius:14px;padding:15px 16px;margin-bottom:14px;background:#fff}
+  .card h3{font-family:'Rubik';font-weight:600;font-size:17px;display:flex;align-items:center;gap:8px}
+  .card .sub{font-size:13px;color:var(--muted);margin-top:2px}
+  .card p{font-size:14px;line-height:1.6;margin-top:8px;font-weight:300;color:#3F4450}
+  .card .walk{
+    display:inline-block;margin-top:8px;font-size:12.5px;font-weight:500;
+    background:var(--soft);border-radius:6px;padding:3px 9px;color:#374151;
+  }
+  .card a{color:var(--main)}
+  .btnrow{display:flex;gap:8px;margin-top:11px;flex-wrap:wrap}
+  .btn{font-family:'Rubik';font-weight:600;font-size:13.5px;text-decoration:none;padding:8px 15px;border-radius:9px;display:inline-block}
+  .btn.solid{background:var(--main);color:#fff!important}
+  .btn.ghost{border:1.5px solid var(--line);color:var(--ink)!important}
+  .h2v{font-family:'Rubik';font-weight:800;font-size:23px;margin-bottom:14px}
+  .h3v{font-family:'Rubik';font-weight:800;font-size:19px;margin:22px 0 12px}
+  .tkrow{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid rgba(0,0,0,.06);font-size:14px;line-height:1.4}
+  .tkrow:last-child{border-bottom:0}
+  .tkrow small{display:block;color:var(--muted);font-size:12.5px;font-weight:300;margin-top:2px}
+  .tk{flex:0 0 26px;text-align:center;font-size:16px}
+  .check{display:flex;gap:12px;align-items:flex-start;padding:13px 4px;border-bottom:1px solid var(--line);cursor:pointer;user-select:none}
+  .check:last-child{border-bottom:none}
+  .box{
+    width:23px;height:23px;flex:none;border:2px solid #C7CBD1;border-radius:7px;margin-top:1px;
+    display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:700;transition:all .15s;
+  }
+  .check.done .box{background:var(--green);border-color:var(--green)}
+  .check .txt{font-size:14.5px;line-height:1.5}
+  .check .txt small{display:block;color:var(--muted);font-size:12.5px;font-weight:300;margin-top:1px}
+  .check.done .txt{text-decoration:line-through;color:#9CA3AF}
+  .check.done .txt small{color:#C2C7CE}
+  .dayroutes{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 10px}
+  .routebtn{
+    font-family:'Rubik';font-weight:600;font-size:13.5px;text-decoration:none;color:#fff;
+    background:var(--c);padding:9px 15px;border-radius:9px;display:inline-flex;align-items:center;gap:6px;
+  }
+  .routebtn.alt{background:#fff;color:var(--c);border:1.5px solid var(--c)}
+  /* alert */
+  .alert{background:#FFF1F1;border:1.5px solid #F5B5B5;border-radius:12px;padding:12px 14px;font-size:13.5px;line-height:1.55;margin-bottom:16px}
+  .alert b{font-weight:600}
+  /* now card */
+  .nowcard{margin:14px 18px 0;border-radius:14px;padding:14px 16px;background:linear-gradient(135deg,#003A70,#0098D4);color:#fff}
+  .nowcard .nc-top{font-family:'Rubik';font-weight:800;font-size:13px;opacity:.85;letter-spacing:.3px}
+  .nowcard .nc-main{font-family:'Rubik';font-weight:800;font-size:19px;margin-top:4px}
+  .nowcard .nc-sub{font-size:13.5px;font-weight:300;margin-top:5px;opacity:.92;line-height:1.5}
+  /* currency */
+  .fxcard{border:1px solid var(--line);border-radius:14px;padding:15px 16px;margin-bottom:16px;background:#fff}
+  .fxcard h3{font-family:'Rubik';font-weight:600;font-size:17px}
+  .fxrow{display:flex;gap:10px;margin-top:12px;align-items:center}
+  .fxrow input{flex:1;min-width:0;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;font-family:'Rubik';font-weight:600;font-size:17px;text-align:center;direction:ltr}
+  .fxrow input:focus{outline:none;border-color:var(--main)}
+  .fxrow .fxlabel{font-family:'Rubik';font-weight:800;font-size:15px;color:var(--muted);flex:none}
+  .fxtable{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+  .fxtable span{background:var(--soft);border-radius:8px;padding:5px 10px;font-size:12.5px;font-weight:500}
+  .fxnote{font-size:11.5px;color:var(--muted);font-weight:300;margin-top:9px}
+  /* map */
+  #map{height:calc(100dvh - 300px);min-height:340px;max-height:560px;border-radius:14px;border:1px solid var(--line)}
+  .backhome{
+    position:fixed;bottom:calc(84px + env(safe-area-inset-bottom));left:14px;z-index:1001;
+    background:var(--main);color:#fff;font-family:'Rubik';font-weight:600;font-size:14px;
+    border:none;border-radius:999px;padding:11px 18px;box-shadow:0 4px 14px rgba(0,0,0,.25);
+    display:none;cursor:pointer;transform:translateZ(0);
+  }
+  .legend{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0 4px}
+  .lgbtn{
+    display:inline-flex;align-items:center;gap:6px;font-family:'Heebo';font-size:12.5px;font-weight:500;
+    background:var(--soft);border:1.5px solid var(--line);border-radius:999px;padding:5px 12px;cursor:pointer;color:var(--ink);
+  }
+  .lgbtn i{width:11px;height:11px;border-radius:50%;display:inline-block;background:var(--c)}
+  .lgbtn.active{background:var(--c);border-color:var(--c);color:#fff}
+  .lgbtn.active i{background:#fff}
+  .leaflet-popup-content{font-family:'Heebo',sans-serif;direction:rtl;text-align:right;font-size:13.5px}
+  .leaflet-popup-content b{font-family:'Rubik'}
+  .numpin div{
+    width:26px;height:26px;border-radius:50%;color:#fff;font-family:'Rubik';font-weight:800;font-size:13px;
+    display:flex;align-items:center;justify-content:center;border:2.5px solid #fff;box-shadow:0 1px 6px rgba(0,0,0,.35);
+  }
+  .fsbtn{
+    display:inline-flex;align-items:center;gap:5px;font-family:'Rubik';font-weight:600;font-size:12.5px;
+    background:var(--main);color:#fff;border:none;border-radius:999px;padding:5px 13px;cursor:pointer;
+  }
+  #fsclose{
+    display:none;position:fixed;top:calc(12px + env(safe-area-inset-top));left:12px;z-index:3100;
+    background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:999px;
+    font-family:'Rubik';font-weight:600;font-size:14px;padding:9px 16px;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,.25);
+  }
+  body.mapfs #map{position:fixed;top:0;left:0;right:0;bottom:0;width:100vw;height:100dvh;max-height:none;min-height:0;z-index:2900;border-radius:0;border:none;margin:0;padding:0}
+  body.mapfs .safetop,body.mapfs header,body.mapfs nav.days{display:none!important}
+  body.mapfs{overflow:hidden}
+  body.mapfs #fsclose{display:block}
+  body.mapfs #maplegend{position:fixed;bottom:calc(10px + env(safe-area-inset-bottom));left:8px;right:8px;z-index:3100;flex-wrap:nowrap;overflow-x:auto;margin:0;scrollbar-width:none}
+  body.mapfs #maplegend .lgbtn{background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.25);border-color:#fff;flex:none}
+  body.mapfs #maplegend .lgbtn.active{background:var(--c);border-color:var(--c)}
+  body.mapfs #maplegend .fsbtn{display:none}
+  body.mapfs .bottomnav,body.mapfs .backhome{display:none!important}
+  /* weather */
+  .wcard{display:flex;align-items:center;gap:14px;border:1px solid var(--line);border-radius:14px;padding:13px 16px;margin-bottom:10px;background:#fff}
+  .wcard.today{border:2px solid var(--main);background:#F5F9FF}
+  .wcard.trip{border-color:var(--sky)}
+  .wcard .emoji{font-size:34px;flex:none}
+  .wcard .wday{font-family:'Rubik';font-weight:600;font-size:15.5px}
+  .wcard .wdate{font-size:12.5px;color:var(--muted);font-weight:300}
+  .wcard .wdesc{font-size:13px;color:#3F4450;font-weight:300;margin-top:2px}
+  .wcard .temps{margin-inline-start:auto;text-align:left;flex:none}
+  .wcard .tmax{font-family:'Rubik';font-weight:800;font-size:19px}
+  .wcard .tmin{font-size:13px;color:var(--muted)}
+  .wcard .rain{font-size:12px;color:#2563EB;font-weight:500;margin-top:2px}
+  .wstatus{text-align:center;color:var(--muted);font-size:14px;padding:30px 0;font-weight:300}
+  /* bottom nav */
+  .bottomnav{
+    position:fixed;bottom:0;left:0;right:0;z-index:1000;transform:translateZ(0);
+    background:rgba(255,255,255,.96);backdrop-filter:blur(12px);
+    border-top:1px solid var(--line);display:flex;
+    padding:8px 8px calc(8px + env(safe-area-inset-bottom));
+  }
+  .bn{flex:1;text-align:center;font-family:'Rubik';font-weight:600;font-size:12px;color:#9CA3AF;background:none;border:none;padding:6px 0 3px;cursor:pointer}
+  .bn .ic{font-size:21px;display:block;margin-bottom:2px;filter:grayscale(1);opacity:.55}
+  .bn.active{color:var(--main)}
+  .bn.active .ic{filter:none;opacity:1}
+  .view{display:none}
+  .view.show{display:block}
+  footer{padding:26px 18px 12px;text-align:center;color:#C2C7CE;font-size:12px;font-weight:300}
+</style>
+</head>
+<body>
+<div class="safetop"></div>
+
+<header>
+  <a href="../" style="display:inline-block;color:#fff;opacity:.85;font-size:12.5px;text-decoration:none;margin-bottom:8px">→ כל הנסיעות</a>
+$LINK
+  <div class="brand">
+    <div class="badge"><span>BAU</span></div>
+    <div>
+      <h1>אלון וברקן ב-BAU מינכן</h1>
+      <div class="dates">ראשון 10.1 – רביעי 13.1.2027 · 3 לילות</div>
+    </div>
+    <button class="refreshbtn" id="refreshbtn">🔄 1.1</button>
+  </div>
+  <div class="homebase">🏨 Platzl Hotel · Sparkassenstraße 10, 80331 München ·
+    <a href="https://maps.google.com/?q=Platzl+Hotel+Sparkassenstra%C3%9Fe+10+M%C3%BCnchen">מפה</a> ·
+    <a href="tel:+4989237030">☎️ ‎+49 89 237030</a>
+  </div>
+</header>
+
+<!-- ================= VIEW: ITINERARY ================= -->
+<div class="view show" id="view-days">
+
+  <div class="nowcard" id="nowcard" style="display:none"></div>
+
+  <nav class="days" id="daynav">
+    <button class="daychip active" style="--c:var(--sky)" data-day="d1"><span class="dot"></span>א׳ 10.1</button>
+    <button class="daychip" style="--c:var(--main)" data-day="d2"><span class="dot"></span>ב׳ 11.1 · BAU</button>
+    <button class="daychip" style="--c:var(--bau)" data-day="d3"><span class="dot"></span>ג׳ 12.1 · BAU</button>
+    <button class="daychip" style="--c:var(--slate)" data-day="d4"><span class="dot"></span>ד׳ 13.1</button>
+  </nav>
+
+  <main>
+
+  <!-- ============ DAY 1 ============ -->
+  <section class="panel show" id="d1" style="--c:var(--sky)">
+    <div class="dayhead">
+      <span class="eyebrow">✈️ יום טיסה</span>
+      <h2>תל אביב → מינכן</h2>
+      <p>נחיתה בערב, מונית למלון, ביס מאוחר ליד המלון · גרמניה שעה אחת אחרי ישראל</p>
+      <div class="wx" data-wx="2027-01-10">🥶 ממוצע ינואר במינכן: בסביבות ‎−3° בלילה ו-3° ביום · שלג אפשרי · 🧥 מעיל חורף, כפפות, נעליים שלא מחליקות</div>
+    </div>
+    <div class="tline">
+      <div class="stop">
+        <div class="time">14:10</div>
+        <h3>נתב״ג · טרמינל 3</h3>
+        <div class="desc">3 שעות לפני הטיסה. צ׳ק-אין אונליין באפליקציית אל על נפתח 24 שעות לפני (שבת 17:10). מזוודה אחת לכל אחד כלולה בכרטיס.</div>
+        <div class="seatcard"><span>טיסה <b>LY351</b></span><span>אלון <b>35H</b></span><span>ברקן <b>⏳ ממתין לאישור שלו</b></span></div>
+      </div>
+      <div class="stop big">
+        <div class="time">17:10</div>
+        <h3>✈️ LY351 תל אביב → מינכן</h3>
+        <div class="desc">4:15 שעות טיסה. נחיתה <b>20:25 שעון גרמניה</b>, טרמינל 1.</div>
+      </div>
+      <div class="stop big">
+        <div class="time">20:25</div>
+        <h3>נחיתה · ביקורת גבולות · מזוודות</h3>
+        <div class="desc">כניסה לאיחוד עם רישום ביומטרי (EES): טביעות אצבע וצילום פנים. בפעם הראשונה זה לוקח זמן.</div>
+        <div class="bg">📖 שדה התעופה של מינכן (MUC) נמצא כ-35 ק״מ צפון-מזרחית לעיר. אל על פועלת מטרמינל 1.</div>
+      </div>
+      <div class="stop big">
+        <div class="time">~21:15</div>
+        <h3>🚕 מונית למלון</h3>
+        <div class="desc">בשעה כזאת, עם מזוודות, מונית היא הבחירה הנוחה: כ-40 דקות, בערך 80–100 יורו. חלופה: <b>רכבת S8 לכיוון העיר עד Marienplatz</b>, כ-40 דקות, ומשם 5 דקות הליכה למלון.</div>
+        <a class="maplink" href="https://www.google.com/maps/dir/?api=1&origin=Munich+Airport+Terminal+1&destination=Platzl+Hotel+M%C3%BCnchen&travelmode=driving">מהשדה למלון</a>
+        <a class="maplink" href="https://www.google.com/maps/dir/?api=1&origin=Munich+Airport+Terminal+1&destination=Platzl+Hotel+M%C3%BCnchen&travelmode=transit">ברכבת</a>
+      </div>
+      <div class="stop big">
+        <div class="time">~22:00</div>
+        <h3>🏨 צ׳ק-אין · Platzl Hotel</h3>
+        <div class="desc">הקבלה פתוחה 24 שעות. <b>2 חדרי Classic Queen</b>, ארוחת בוקר כלולה. <b>התשלום בצ׳ק-אין: ‎€2,742 על שני החדרים</b> (לא שולמה מקדמה).</div>
+        <div class="bg">📖 מלון ותיק בלב העיר העתיקה, ממש מול ה-Hofbräuhaus. מהחלונות רואים את העיר ההיסטורית או את בית הבירה. Marienplatz במרחק 4 דקות הליכה.</div>
+      </div>
+      <div class="stop">
+        <div class="time">~22:15</div>
+        <h3>🍺 ביס מאוחר ב-Hofbräuhaus</h3>
+        <div class="desc">ממש מעבר לכיכר הקטנה. אולם הבירה הכי מפורסם בעולם. לבדוק שהמטבח עוד פתוח.</div>
+        <a class="maplink" href="https://maps.google.com/?q=Hofbr%C3%A4uhaus+M%C3%BCnchen+Platzl+9">Platzl 9</a>
+      </div>
+    </div>
+    <div class="dayroutes">
+      <a class="routebtn" href="https://www.google.com/maps/dir/?api=1&origin=Munich+Airport+Terminal+1&destination=Platzl+Hotel+M%C3%BCnchen&travelmode=driving">🚕 מהשדה למלון</a>
+      <a class="routebtn alt" href="https://www.elal.com/he/manage-booking">✈️ צ׳ק-אין אל על</a>
+    </div>
+  </section>
+
+  <!-- ============ DAY 2 ============ -->
+  <section class="panel" id="d2" style="--c:var(--main)">
+    <div class="dayhead">
+      <span class="eyebrow">🏗️ BAU · יום ראשון בתערוכה</span>
+      <h2>Messe München</h2>
+      <p>יום הפתיחה של התערוכה (11–15.1) · פתוח למבקרים 09:30–18:00</p>
+      <div class="wx" data-wx="2027-01-11">🥶 ממוצע ינואר: ‎−3°/3° · באולמות חם, להשאיר מעיל במלתחה</div>
+    </div>
+    <div class="tline">
+      <div class="stop">
+        <div class="time">07:30</div>
+        <h3>☕ ארוחת בוקר במלון</h3>
+        <div class="desc">כלולה במחיר. נעליים נוחות: יום שלם של הליכה באולמות.</div>
+      </div>
+      <div class="stop big">
+        <div class="time">08:45</div>
+        <h3>🚇 יציאה לתערוכה</h3>
+        <div class="desc">5 דק׳ הליכה ל-Marienplatz, תחנה אחת ב-U3 או U6 ל-Sendlinger Tor, ושם <b>U2 לכיוון Messestadt Ost</b>. יורדים ב-<b>Messestadt West</b> (כניסה מערבית). כ-35 דקות מהדלת לדלת. מונית: כ-25 דקות.</div>
+        <div class="tags"><span class="tag todo">לבדוק אם כרטיס BAU כולל תחבורה ציבורית (MVV)</span></div>
+        <a class="maplink" href="https://www.google.com/maps/dir/?api=1&origin=Platzl+Hotel+M%C3%BCnchen&destination=Messe+M%C3%BCnchen+Eingang+West&travelmode=transit">מהמלון לתערוכה</a>
+      </div>
+      <div class="stop big">
+        <div class="time">09:30</div>
+        <h3>🏗️ BAU נפתחת</h3>
+        <div class="desc">הסבב הראשון: <b>חלונות, דלתות, הזזה ומערכות זכוכית</b>. מתחילים מהספקים שלנו ומהמציגים החדשים בתחום. את מפת האולמות כדאי להוריד לטלפון מראש, ואת רשימת הספקים יש בטאב «משימות».</div>
+        <div class="bg">📖 BAU היא תערוכת הבנייה, האדריכלות והחומרים הגדולה בעולם. היא מתקיימת אחת לשנתיים, בכ-20 אולמות בשטח של כ-200 אלף מ״ר.</div>
+        <a class="maplink" href="https://bau-muenchen.com/en/trade-fair/plan-your-visit/opening-hours">שעות ומידע למבקרים</a>
+      </div>
+      <div class="stop">
+        <div class="time">13:00</div>
+        <h3>🥨 צהריים בתערוכה</h3>
+        <div class="desc">דוכנים ומסעדות בכל אולם. בשעות השיא יש תורים, אז עדיף להקדים או לאחר.</div>
+      </div>
+      <div class="stop">
+        <div class="time">18:00</div>
+        <h3>סגירה · חזרה למלון</h3>
+        <div class="desc">באותו מסלול ב-U2 בכיוון ההפוך. בשעת הסגירה יש עומס, מונית יכולה להיות קלה יותר.</div>
+      </div>
+      <div class="stop big">
+        <div class="time">20:00</div>
+        <h3>🍽️ ארוחת ערב ליד המלון</h3>
+        <div class="desc">הצעה: <b>Ayingers am Platzl</b>, מסעדה בווארית מול המלון. או Schneider Bräuhaus ברחוב Tal, 5 דקות הליכה. עוד אפשרויות בטאב «אוכל».</div>
+        <a class="maplink" href="https://maps.google.com/?q=Ayingers+am+Platzl+M%C3%BCnchen">Ayingers</a>
+      </div>
+    </div>
+    <div class="dayroutes">
+      <a class="routebtn" href="https://www.google.com/maps/dir/?api=1&origin=Platzl+Hotel+M%C3%BCnchen&destination=Messe+M%C3%BCnchen+Eingang+West&travelmode=transit">🚇 מהמלון לתערוכה</a>
+      <a class="routebtn alt" href="https://bau-muenchen.com/en/">🏗️ אתר BAU</a>
+    </div>
+  </section>
+
+  <!-- ============ DAY 3 ============ -->
+  <section class="panel" id="d3" style="--c:var(--bau)">
+    <div class="dayhead">
+      <span class="eyebrow">🏗️ BAU · יום שני בתערוכה</span>
+      <h2>פגישות ספקים וסבב שני</h2>
+      <p>להשלים את מה שלא הספקנו, פגישות קבועות, ובערב ארוחת פרידה</p>
+      <div class="wx" data-wx="2027-01-12">🥶 ממוצע ינואר: ‎−3°/3°</div>
+    </div>
+    <div class="tline">
+      <div class="stop">
+        <div class="time">07:30</div>
+        <h3>☕ ארוחת בוקר</h3>
+        <div class="desc">לעבור ביחד על רשימת הספקים ולסמן מה נשאר.</div>
+      </div>
+      <div class="stop big">
+        <div class="time">09:30</div>
+        <h3>🤝 פגישות וסבב שני</h3>
+        <div class="desc">פגישות שנקבעו מראש עם ספקים, וחזרה לדוכנים ששווה לראות שוב. גם אולמות שלא הגענו אליהם: חומרי גמר, הצללה, פרזול ובית חכם.</div>
+      </div>
+      <div class="stop">
+        <div class="time">~17:30</div>
+        <h3>חזרה למלון</h3>
+      </div>
+      <div class="stop big">
+        <div class="time">20:00</div>
+        <h3>🥂 ארוחת פרידה</h3>
+        <div class="desc">הצעות: <b>Brenner Grill</b> ב-Maximilianstraße, גריל באווירה אלגנטית, 5 דקות הליכה. או <b>Pfistermühle</b> בתוך המלון, מטבח בווארי מוקפד. כדאי להזמין שולחן מראש.</div>
+      </div>
+      <div class="stop">
+        <div class="time">22:00</div>
+        <h3>🧳 אריזה + צ׳ק-אין לטיסה</h3>
+        <div class="desc">צ׳ק-אין אונליין ל-LY354 נפתח היום ב-10:55. מחר יוצאים מוקדם.</div>
+        <div class="tags"><span class="tag todo">צ׳ק-אין אל על · אריזה</span></div>
+      </div>
+    </div>
+    <div class="dayroutes">
+      <a class="routebtn" href="https://www.google.com/maps/dir/?api=1&origin=Platzl+Hotel+M%C3%BCnchen&destination=Messe+M%C3%BCnchen+Eingang+West&travelmode=transit">🚇 מהמלון לתערוכה</a>
+      <a class="routebtn alt" href="https://www.elal.com/he/manage-booking">✈️ צ׳ק-אין אל על</a>
+    </div>
+  </section>
+
+  <!-- ============ DAY 4 ============ -->
+  <section class="panel" id="d4" style="--c:var(--slate)">
+    <div class="dayhead">
+      <span class="eyebrow">🏠 טיסה הביתה</span>
+      <h2>מינכן → תל אביב</h2>
+      <p>צ׳ק-אאוט מוקדם · ביטחון אל על דורש להגיע מוקדם</p>
+      <div class="wx" data-wx="2027-01-13">🥶 ממוצע ינואר: ‎−3°/3° · שלג יכול לעכב את הדרך לשדה, לצאת בזמן</div>
+    </div>
+    <div class="tline">
+      <div class="stop">
+        <div class="time">06:30</div>
+        <h3>☕ ארוחת בוקר מהירה</h3>
+        <div class="desc">לבדוק בקבלה מאיזו שעה ארוחת הבוקר. אם מאוחר מדי, לבקש קופסה לדרך.</div>
+      </div>
+      <div class="stop big">
+        <div class="time">07:15</div>
+        <h3>🧳 צ׳ק-אאוט · מונית לשדה</h3>
+        <div class="desc">כ-40 דקות לטרמינל 1 (יותר בשלג או בפקקים של בוקר). אפשר לבקש מהקבלה להזמין מונית ערב קודם.</div>
+        <a class="maplink" href="https://www.google.com/maps/dir/?api=1&origin=Platzl+Hotel+M%C3%BCnchen&destination=Munich+Airport+Terminal+1&travelmode=driving">מהמלון לשדה</a>
+      </div>
+      <div class="stop">
+        <div class="time">08:00</div>
+        <h3>שדה התעופה · טרמינל 1</h3>
+        <div class="desc">כ-3 שעות לפני: בידוק ביטחוני של אל על, מסירת מזוודות, ביקורת דרכונים.</div>
+      </div>
+      <div class="stop big">
+        <div class="time">10:55</div>
+        <h3>✈️ LY354 מינכן → תל אביב</h3>
+        <div class="desc">3:45 שעות טיסה. נחיתה <b>15:40 שעון ישראל</b>, טרמינל 3.</div>
+        <div class="seatcard"><span>טיסה <b>LY354</b></span><span>אלון <b>35H</b></span><span>ברקן <b>⏳</b></span></div>
+      </div>
+    </div>
+    <div class="dayroutes">
+      <a class="routebtn" href="https://www.google.com/maps/dir/?api=1&origin=Platzl+Hotel+M%C3%BCnchen&destination=Munich+Airport+Terminal+1&travelmode=driving">🚕 מהמלון לשדה</a>
+    </div>
+  </section>
+
+  </main>
+</div>
+
+<!-- ================= VIEW: FOOD ================= -->
+<div class="view" id="view-food">
+  <main style="padding:20px 18px">
+    <h2 class="h2v">אוכל ליד המלון 🍽️</h2>
+    <p style="color:var(--muted);font-size:13px;font-weight:300;margin:-6px 0 14px">הכול בהליכה מ-Platzl · שעות פתיחה לבדוק לפני (בעיקר בימי ראשון)</p>
+
+    <div class="card">
+      <h3>🍺 Hofbräuhaus</h3>
+      <div class="sub">בית בירה בווארי · Platzl 9</div>
+      <p>האייקון של מינכן: אולם ענק, תזמורת, נקניקיות, ברך חזיר ובירה בליטר. לביס מאוחר בערב הנחיתה.</p>
+      <span class="walk">🚶 דקה מהמלון</span>
+      <div class="btnrow"><a class="btn ghost" href="https://maps.google.com/?q=Hofbr%C3%A4uhaus+M%C3%BCnchen+Platzl+9">📍 מפה</a></div>
+    </div>
+    <div class="card">
+      <h3>🥨 Ayingers am Platzl</h3>
+      <div class="sub">מסעדה בווארית · מול המלון</div>
+      <p>אוכל בווארי קלאסי ברמה טובה יותר מבתי הבירה הגדולים, ובירה של מבשלת Ayinger. מתאים לערב אחרי התערוכה.</p>
+      <span class="walk">🚶 דקה מהמלון</span>
+      <div class="btnrow"><a class="btn ghost" href="https://maps.google.com/?q=Ayingers+am+Platzl+M%C3%BCnchen">📍 מפה</a></div>
+    </div>
+    <div class="card">
+      <h3>🍽️ Pfistermühle</h3>
+      <div class="sub">מטבח בווארי מוקפד · בתוך Platzl Hotel</div>
+      <p>המסעדה של המלון, באולם מקומר מהמאה ה-16. מתאימה לארוחת פרידה. להזמין מראש ולבדוק ימי פתיחה.</p>
+      <span class="walk">🚶 במלון</span>
+      <div class="btnrow"><a class="btn ghost" href="https://maps.google.com/?q=Pfisterm%C3%BChle+M%C3%BCnchen">📍 מפה</a></div>
+    </div>
+    <div class="card">
+      <h3>🔥 Brenner Grill</h3>
+      <div class="sub">גריל · Maximilianstraße 15</div>
+      <p>גריל פתוח באולם גבוה עם עמודים, אווירה אלגנטית ותוססת. סטייקים, צלעות ופסטה.</p>
+      <span class="walk">🚶 5 דק׳</span>
+      <div class="btnrow"><a class="btn ghost" href="https://maps.google.com/?q=Brenner+Grill+Maximilianstra%C3%9Fe+15+M%C3%BCnchen">📍 מפה</a></div>
+    </div>
+    <div class="card">
+      <h3>🌭 Schneider Bräuhaus</h3>
+      <div class="sub">בית בירה · Tal 7</div>
+      <p>בית הבירה של Schneider Weisse. המקום לנקניקיות הלבנות (Weißwurst) של הבוקר ולבירת חיטה.</p>
+      <span class="walk">🚶 4 דק׳</span>
+      <div class="btnrow"><a class="btn ghost" href="https://maps.google.com/?q=Schneider+Br%C3%A4uhaus+Tal+7+M%C3%BCnchen">📍 מפה</a></div>
+    </div>
+    <div class="card">
+      <h3>✡️ Einstein · כשר</h3>
+      <div class="sub">מסעדה כשרה · St.-Jakobs-Platz 18 (המרכז היהודי)</div>
+      <p>אם צריך אוכל כשר. ליד Viktualienmarkt. לבדוק שעות ולהזמין מראש.</p>
+      <span class="walk">🚶 10 דק׳</span>
+      <div class="btnrow"><a class="btn ghost" href="https://maps.google.com/?q=Restaurant+Einstein+St.-Jakobs-Platz+18+M%C3%BCnchen">📍 מפה</a></div>
+    </div>
+
+    <h3 class="h3v">☕ קפה וקניות אוכל</h3>
+    <div class="card">
+      <h3>Dallmayr</h3>
+      <div class="sub">מעדנייה היסטורית · Dienerstraße 14</div>
+      <p>חנות מעדנים ובית קפה מ-1700. מקום טוב למתנות לחזרה (קפה, שוקולד).</p>
+      <span class="walk">🚶 4 דק׳</span>
+    </div>
+    <div class="card">
+      <h3>Viktualienmarkt</h3>
+      <div class="sub">שוק האוכל של העיר</div>
+      <p>דוכני אוכל, גבינות ונקניקים. בחורף חלק מהדוכנים סגורים, אבל יש אוכל חם.</p>
+      <span class="walk">🚶 6 דק׳</span>
+    </div>
+  </main>
+</div>
+
+<!-- ================= VIEW: TODO ================= -->
+<div class="view" id="view-todo">
+  <main style="padding:20px 18px">
+    <h2 class="h2v">הזמנות ומשימות ✅</h2>
+
+    <div class="alert">⚠️ <b>הונאה בוואטסאפ (26.10):</b> הגיעה הודעה «בשם Platzl Hotel» עם קישור ל-prearrival-guestreview.com, ובה בקשה «לאשר פרטים תוך 12 שעות». <b>זו הונאה, לא ללחוץ.</b> לנוכלים יש את פרטי ההזמנה האמיתיים. מול המלון מתכתבים רק דרך servus@platzl.de או בטלפון ‎+49 89 237030.</div>
+
+    <div class="card">
+      <h3 style="font-family:'Rubik';font-weight:800;font-size:18px;margin:0 0 10px">🎫 מצב ההזמנות</h3>
+      <div class="tkrow"><span class="tk">✅</span><div><b>טיסות אלון · אל על</b><small>א׳ 10.1 LY351 תל אביב 17:10 → מינכן 20:25 · ד׳ 13.1 LY354 מינכן 10:55 → תל אביב 15:40 · מושב 35H בשתיהן · מזוודה אחת · El Al Protect · מספר ההזמנה במייל</small></div></div>
+      <div class="tkrow"><span class="tk">⏳</span><div><b>טיסות ברקן</b><small>הוזמנו בנפרד. האישור עוד לא הועבר אלינו, ומחכים לו בשביל מספר ההזמנה והמושב</small></div></div>
+      <div class="tkrow"><span class="tk">✅</span><div><b>Platzl Hotel · 10–13.1 (3 לילות)</b><small>2 חדרי Classic Queen, ארוחת בוקר כלולה · ‎€2,742 לשני החדרים, משלמים בצ׳ק-אין · צ׳ק-אין מ-15:00, צ׳ק-אאוט עד 12:00 · <b>ביטול חינם עד 08.01.2027</b>, אחר כך 90% · מספר ההזמנה במייל</small></div></div>
+      <div class="tkrow"><span class="tk">🛒</span><div><b>כרטיסי כניסה ל-BAU</b><small>עוד לא נקנו · <a href="https://bau-muenchen.com/en/">אתר BAU</a> · כדאי לקנות אונליין מראש</small></div></div>
+    </div>
+
+    <div class="fxcard">
+      <h3>💶 המרת מטבע · יורו ⇄ שקל</h3>
+      <div class="fxrow">
+        <span class="fxlabel">€</span><input type="number" id="fxeur" placeholder="0" inputmode="decimal">
+        <span class="fxlabel">=</span>
+        <input type="number" id="fxils" placeholder="0" inputmode="decimal"><span class="fxlabel">₪</span>
+      </div>
+      <div class="fxtable" id="fxtable"></div>
+      <div class="fxnote" id="fxnote">שער משוער · נטען שער עדכני כשיש אינטרנט</div>
+    </div>
+
+    <p style="color:var(--muted);font-size:13.5px;font-weight:300;margin-bottom:10px">משימות · הסימונים נשמרים בטלפון הזה בלבד</p>
+    <div class="card" id="checklist">
+      <div class="check" data-k="t1"><div class="box">✓</div><div class="txt">לקנות כרטיסי כניסה ל-BAU 🎫<small>לשנינו · <a href="https://bau-muenchen.com/en/">bau-muenchen.com</a> · לבדוק אם הכרטיס כולל תחבורה ציבורית</small></div></div>
+      <div class="check" data-k="t2"><div class="box">✓</div><div class="txt">ברקן: להעביר את אישור הטיסה שלו ✈️<small>מספר הזמנה ומושב, כדי להוסיף לאתר</small></div></div>
+      <div class="check" data-k="t3"><div class="box">✓</div><div class="txt">לקבוע מראש פגישות עם ספקים בתערוכה 🤝<small>לבדוק ברשימת המציגים מי מגיע ובאיזה אולם · למשל Hawa, Griesser, Centor, Elero, Somfy, Hoppe, Vitrocsa · <a href="https://bau-muenchen.com/en/">רשימת המציגים באתר BAU</a></small></div></div>
+      <div class="check" data-k="t4"><div class="box">✓</div><div class="txt">להוריד את מפת האולמות ואת אפליקציית BAU 📱<small>הקליטה באולמות לא תמיד טובה</small></div></div>
+      <div class="check" data-k="t5"><div class="box">✓</div><div class="txt">להחליט על המלון עד 08.01.2027 🏨<small>עד אז ביטול חינם, אחר כך 90% מהסכום</small></div></div>
+      <div class="check" data-k="t6"><div class="box">✓</div><div class="txt">להזמין שולחן לארוחת הפרידה 🥂<small>שלישי 12.1 · Brenner Grill או Pfistermühle</small></div></div>
+      <div class="check" data-k="t7"><div class="box">✓</div><div class="txt">צ׳ק-אין אונליין לטיסות ✈️<small>הלוך: נפתח שבת 9.1 ב-17:10 · חזור: נפתח שלישי 12.1 ב-10:55 · <a href="https://www.elal.com/he/manage-booking">ניהול הזמנה באל על</a></small></div></div>
+      <div class="check" data-k="t8"><div class="box">✓</div><div class="txt">ביטוח נסיעות לחו״ל 🛡️</div></div>
+      <div class="check" data-k="t9"><div class="box">✓</div><div class="txt">ביגוד חורף 🧥<small>מעיל חם, כפפות, כובע, נעליים נוחות ועמידות לשלג</small></div></div>
+      <div class="check" data-k="t10"><div class="box">✓</div><div class="txt">כרטיסי ביקור וקטלוגים של ווינטק 💼</div></div>
+      <div class="check" data-k="t11"><div class="box">✓</div><div class="txt">רישום EES בכניסה לאירופה<small>טביעות אצבע וצילום בגבול, לתכנן זמן בנחיתה · <a href="https://travel-europe.europa.eu/ees">מידע רשמי</a></small></div></div>
+    </div>
+  </main>
+</div>
+
+<!-- ================= VIEW: WEATHER ================= -->
+<div class="view" id="view-weather">
+  <main style="padding:20px 18px">
+    <h2 class="h2v" style="margin-bottom:4px">מזג האוויר במינכן ❄️</h2>
+    <p style="color:var(--muted);font-size:13px;font-weight:300;margin-bottom:14px">תחזית ל-7 ימים · מתעדכנת בכל פתיחה · דורש אינטרנט</p>
+    <div id="weatherbox"><div class="wstatus">לחיצה על הטאב טוענת תחזית...</div></div>
+  </main>
+</div>
+
+<!-- ================= VIEW: MAP ================= -->
+<div class="view" id="view-map">
+  <main style="padding:16px 14px">
+    <h2 class="h2v" style="margin-bottom:4px">מפת הנסיעה 🗺️</h2>
+    <p style="color:var(--muted);font-size:13px;font-weight:300">המלון, התערוכה, השדה והמסעדות · דורש אינטרנט</p>
+    <div class="legend" id="maplegend">
+      <button class="lgbtn active" data-day="all" style="--c:#1C1C1B">הכול</button>
+      <button class="lgbtn" data-day="0" style="--c:#0098D4"><i></i>הגעה וחזרה</button>
+      <button class="lgbtn" data-day="1" style="--c:#003A70"><i></i>BAU</button>
+      <button class="lgbtn" data-day="2" style="--c:#C8102E"><i></i>אוכל</button>
+      <button class="fsbtn" id="fsbtn">⛶ מסך מלא</button>
+    </div>
+    <button id="fsclose">✕ חזרה</button>
+    <div id="map"></div>
+  </main>
+</div>
+
+<footer>נבנה עם קלוד · אוקטובר 2026 · נסיעה טובה! ✈️ · גרסה 1.1</footer>
+
+<button class="backhome" id="backhome">🗓 חזרה למסלול</button>
+
+<div class="bottomnav">
+  <button class="bn active" data-view="view-days"><span class="ic">🗓</span>מסלול</button>
+  <button class="bn" data-view="view-food"><span class="ic">🍽️</span>אוכל</button>
+  <button class="bn" data-view="view-map"><span class="ic">🗺️</span>מפה</button>
+  <button class="bn" data-view="view-weather"><span class="ic">❄️</span>מזג אוויר</button>
+  <button class="bn" data-view="view-todo"><span class="ic">✅</span>משימות</button>
+</div>
+
+<script>
+// ---- force refresh: bypass cache with a unique query param ----
+document.getElementById('refreshbtn').addEventListener('click',()=>{
+  document.getElementById('refreshbtn').textContent='⏳ מרענן...';
+  window.location.href = window.location.pathname + '?r=' + Date.now();
+});
+// ---- day tabs ----
+document.querySelectorAll('.daychip').forEach(chip=>{
+  chip.addEventListener('click',()=>{
+    document.querySelectorAll('.daychip').forEach(c=>c.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('show'));
+    chip.classList.add('active');
+    document.getElementById(chip.dataset.day).classList.add('show');
+    window.scrollTo({top:0});
+  });
+});
+// ---- bottom nav ----
+document.querySelectorAll('.bn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.bn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('show'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.view).classList.add('show');
+    document.getElementById('backhome').style.display = (btn.dataset.view==='view-map') ? 'block' : 'none';
+    if(btn.dataset.view!=='view-map') setMapFS(false);
+    window.scrollTo({top:0});
+  });
+});
+document.getElementById('backhome').addEventListener('click',()=>{
+  document.querySelector('.bn[data-view="view-days"]').click();
+});
+// ---- tappable stops: toggle background info ----
+document.querySelectorAll('.stop').forEach(s=>{
+  if(s.querySelector('.bg')){
+    s.classList.add('hasbg');
+    s.addEventListener('click',e=>{
+      if(e.target.closest('a')||e.target.closest('button'))return;
+      s.classList.toggle('open');
+    });
+  }
+});
+// ---- checklist with graceful persistence ----
+const store = {
+  get(k){ try{ return localStorage.getItem('muc27_'+k)==='1'; }catch(e){ return !!this._m&&this._m[k]; } },
+  set(k,v){ try{ localStorage.setItem('muc27_'+k, v?'1':'0'); }catch(e){ this._m=this._m||{}; this._m[k]=v; } }
+};
+document.querySelectorAll('.check').forEach(row=>{
+  const k=row.dataset.k;
+  if(store.get(k)) row.classList.add('done');
+  row.addEventListener('click',e=>{
+    if(e.target.closest('a'))return;
+    row.classList.toggle('done');
+    store.set(k,row.classList.contains('done'));
+  });
+});
+// ---- "now in plan" card + countdown (Munich time) ----
+const tripSchedule={
+ '2027-01-10':[['14:10','נתב״ג טרמינל 3'],['17:10','LY351 למינכן ✈️'],['20:25','נחיתה · EES · מזוודות'],['21:15','מונית למלון 🚕'],['22:00','צ׳ק-אין Platzl 🏨'],['22:15','Hofbräuhaus 🍺']],
+ '2027-01-11':[['07:30','ארוחת בוקר ☕'],['08:45','U-Bahn לתערוכה 🚇'],['09:30','BAU · יום 1 🏗️'],['13:00','צהריים 🥨'],['18:00','סגירה · חזרה'],['20:00','ארוחת ערב 🍽️']],
+ '2027-01-12':[['07:30','ארוחת בוקר ☕'],['09:30','BAU · פגישות וסבב שני 🤝'],['17:30','חזרה למלון'],['20:00','ארוחת פרידה 🥂'],['22:00','אריזה + צ׳ק-אין 🧳']],
+ '2027-01-13':[['06:30','ארוחת בוקר ☕'],['07:15','צ׳ק-אאוט · מונית 🚕'],['08:00','שדה התעופה T1'],['10:55','LY354 הביתה ✈️']]
+};
+function renderNowCard(){
+  const el=document.getElementById('nowcard');
+  const now=new Date();
+  const tzNow=new Date(now.toLocaleString('en-US',{timeZone:'Europe/Berlin'}));
+  const y=tzNow.getFullYear(),m=String(tzNow.getMonth()+1).padStart(2,'0'),d=String(tzNow.getDate()).padStart(2,'0');
+  const today=y+'-'+m+'-'+d;
+  const tripStart=new Date('2027-01-10T14:10:00+02:00'), tripEnd=new Date('2027-01-13T15:40:00+02:00');
+  if(now<tripStart){
+    const days=Math.ceil((tripStart-now)/(1000*60*60*24));
+    el.innerHTML='<div class="nc-top">⏳ ספירה לאחור</div><div class="nc-main">עוד '+days+' ימים ל-BAU!</div><div class="nc-sub">ראשון 10.1 · LY351 17:10 מנתב״ג · נחיתה 20:25 במינכן</div>';
+    el.style.display='block';return;
+  }
+  if(now>tripEnd){
+    el.innerHTML='<div class="nc-top">🏠 חזרתם</div><div class="nc-main">מקווה שהיה פורה! 🎉</div><div class="nc-sub">עכשיו לסכם את הפגישות ולשלוח מיילים לספקים</div>';
+    el.style.display='block';return;
+  }
+  const sched=tripSchedule[today]||[];
+  const dayNum=Math.floor((new Date(today+'T12:00:00')-new Date('2027-01-10T12:00:00'))/(1000*60*60*24))+1;
+  const nowMin=tzNow.getHours()*60+tzNow.getMinutes();
+  let cur=null,next=null;
+  for(const s of sched){
+    const[t]=s; const[h,mm]=t.split(':').map(Number); const tm=h*60+mm;
+    if(tm<=nowMin)cur=s; else if(!next)next=s;
+  }
+  let sub='';
+  if(cur)sub+='עכשיו: <b>'+cur[1]+'</b>';
+  if(next)sub+=(sub?'<br>':'')+'הבא: <b>'+next[1]+'</b> ב-'+next[0];
+  if(!sub)sub='ערב חופשי';
+  el.innerHTML='<div class="nc-top">📍 יום '+dayNum+' מתוך 4 · שעון מינכן '+String(tzNow.getHours()).padStart(2,'0')+':'+String(tzNow.getMinutes()).padStart(2,'0')+'</div><div class="nc-main">היום בתוכנית</div><div class="nc-sub">'+sub+'</div>';
+  el.style.display='block';
+}
+renderNowCard();
+setInterval(renderNowCard,60000);
+
+// ---- currency converter (Frankfurter, no key; static fallback) ----
+let fxRate=4.0, fxLive=false;
+function fxRender(){
+  document.getElementById('fxtable').innerHTML=[1,5,10,20,50,100].map(v=>'<span>€'+v+' ≈ ₪'+Math.round(v*fxRate)+'</span>').join('');
+  document.getElementById('fxnote').textContent = fxLive
+    ? ('שער עדכני: €1 = ₪'+fxRate.toFixed(2)+' · Frankfurter/ECB')
+    : ('שער משוער: €1 = ₪'+fxRate.toFixed(2)+' · נטען שער עדכני כשיש אינטרנט');
+}
+async function fxLoad(){
+  try{
+    const r=await fetch('https://api.frankfurter.dev/v1/latest?base=EUR&symbols=ILS');
+    const d=await r.json();
+    if(d&&d.rates&&d.rates.ILS){fxRate=d.rates.ILS;fxLive=true;}
+  }catch(e){}
+  fxRender();
+}
+document.getElementById('fxeur').addEventListener('input',e=>{
+  const v=parseFloat(e.target.value);
+  document.getElementById('fxils').value=isNaN(v)?'':(v*fxRate).toFixed(1);
+});
+document.getElementById('fxils').addEventListener('input',e=>{
+  const v=parseFloat(e.target.value);
+  document.getElementById('fxeur').value=isNaN(v)?'':(v/fxRate).toFixed(1);
+});
+fxRender(); fxLoad();
+
+// ---- weather (Open-Meteo, no key) ----
+const WX={0:['☀️','בהיר'],1:['🌤️','בהיר ברובו'],2:['⛅','מעונן חלקית'],3:['☁️','מעונן'],45:['🌫️','ערפל'],48:['🌫️','ערפל קפוא'],
+  51:['🌦️','טפטוף קל'],53:['🌦️','טפטוף'],55:['🌧️','טפטוף כבד'],56:['🌧️','טפטוף קפוא'],57:['🌧️','טפטוף קפוא'],61:['🌦️','גשם קל'],63:['🌧️','גשם'],65:['🌧️','גשם כבד'],
+  66:['🌧️','גשם קפוא'],67:['🌧️','גשם קפוא'],71:['🌨️','שלג קל'],73:['🌨️','שלג'],75:['❄️','שלג כבד'],77:['🌨️','פתיתי שלג'],
+  80:['🌦️','ממטרים קלים'],81:['🌧️','ממטרים'],82:['⛈️','ממטרים עזים'],85:['🌨️','ממטרי שלג'],86:['🌨️','ממטרי שלג'],
+  95:['⛈️','סופת רעמים'],96:['⛈️','סופת ברד'],99:['⛈️','סופת ברד']};
+async function loadWeather(){
+  const box=document.getElementById('weatherbox');
+  box.innerHTML='<div class="wstatus">טוען תחזית... ⏳</div>';
+  try{
+    const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=48.137&longitude=11.576&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Europe%2FBerlin&forecast_days=7');
+    const days=(await r.json()).daily;
+    let out='';
+    for(let i=0;i<days.time.length;i++){
+      const dt=new Date(days.time[i]+'T12:00:00');
+      const wd=i===0?'היום':(i===1?'מחר':dt.toLocaleDateString('he-IL',{weekday:'long'}));
+      const date=String(dt.getDate()).padStart(2,'0')+'-'+String(dt.getMonth()+1).padStart(2,'0');
+      const w=WX[days.weather_code[i]]||['🌡️',''];
+      const rain=days.precipitation_probability_max[i];
+      const trip=days.time[i]>='2027-01-10'&&days.time[i]<='2027-01-13';
+      out+='<div class="wcard'+(i===0?' today':'')+(trip?' trip':'')+'">'
+        +'<div class="emoji">'+w[0]+'</div>'
+        +'<div><div class="wday">'+wd+(trip?' · 🧳':'')+'</div><div class="wdate">'+date+'</div><div class="wdesc">'+w[1]+'</div></div>'
+        +'<div class="temps"><div class="tmax">'+Math.round(days.temperature_2m_max[i])+'°</div>'
+        +'<div class="tmin">'+Math.round(days.temperature_2m_min[i])+'°</div>'
+        +(rain>=20?'<div class="rain">💧 '+rain+'%</div>':'')
+        +'</div></div>';
+    }
+    box.innerHTML=out+'<div class="wstatus" style="padding:10px 0;font-size:12px">מקור: Open-Meteo · מינכן · ממוצע ינואר: ‎−3° עד 3°</div>';
+  }catch(e){
+    box.innerHTML='<div class="wstatus">לא הצלחתי לטעון תחזית 😕<br>בדקו חיבור אינטרנט ונסו שוב</div>';
+  }
+}
+document.querySelector('.bn[data-view="view-weather"]').addEventListener('click',loadWeather);
+
+// ---- live weather on day headers (only once within forecast range) ----
+(function(){
+  const els=[...document.querySelectorAll('.wx[data-wx]')];
+  const days=els.map(e=>e.dataset.wx).sort();
+  const ahead=(new Date(days[0]+'T00:00:00')-new Date())/(1000*60*60*24);
+  if(ahead>15) return;
+  const wear=(mx,mn)=>mx<=2?'מעיל חורף, כפפות וכובע':mx<=8?'מעיל חם וצעיף':'ז׳קט חם';
+  fetch('https://api.open-meteo.com/v1/forecast?latitude=48.137&longitude=11.576&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Europe%2FBerlin&start_date='+days[0]+'&end_date='+days[days.length-1])
+    .then(r=>r.json()).then(j=>{const d=j.daily; d.time.forEach((t,i)=>{const el=els.find(e=>e.dataset.wx===t); if(!el) return;
+      const w=WX[d.weather_code[i]]||['🌡️',''];
+      el.textContent=w[0]+' '+w[1]+' · '+Math.round(d.temperature_2m_max[i])+'°/'+Math.round(d.temperature_2m_min[i])+'° · משקעים '+(d.precipitation_probability_max[i]||0)+'% · 🧥 '+wear(d.temperature_2m_max[i])+' · עודכן עכשיו';});}).catch(()=>{});
+})();
+
+// ---- leaflet map (lazy init) ----
+let mapObj=null, dayLayers=[], allBounds=null;
+function initMap(){
+  if(mapObj || typeof L==='undefined') { if(mapObj) setTimeout(()=>mapObj.invalidateSize(),80); return; }
+  const home=[48.1374,11.5797];
+  mapObj=L.map('map',{zoomControl:true}).setView([48.16,11.65],11);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:19}).addTo(mapObj);
+  const groups=[
+    {c:'#0098D4',n:'הגעה וחזרה',pts:[
+      [48.3537,11.7750,'✈️ שדה התעופה · טרמינל 1','נחיתה א׳ 20:25 · המראה ד׳ 10:55','אל על פועלת מטרמינל 1. כ-40 דקות במונית מהמלון.'],
+      [48.1372,11.5755,'Marienplatz','5 דק׳ מהמלון','הכיכר המרכזית, עם בניין העירייה והשעון המכני. תחנת S-Bahn ו-U-Bahn.']]},
+    {c:'#003A70',n:'BAU',pts:[
+      [48.1340,11.5670,'Sendlinger Tor','החלפה ל-U2','מ-Marienplatz תחנה אחת ב-U3/U6, ושם U2 לכיוון Messestadt Ost.'],
+      [48.1336,11.6912,'Messestadt West · כניסה מערבית','09:30–18:00','Messe München: מתחם התערוכות הגדול של מינכן. BAU תופסת את כל האולמות.']]},
+    {c:'#C8102E',n:'אוכל',pts:[
+      [48.1376,11.5799,'Hofbräuhaus','מול המלון','אולם הבירה המפורסם בעולם.'],
+      [48.1371,11.5794,'Ayingers am Platzl','מול המלון','מטבח בווארי ובירת Ayinger.'],
+      [48.1360,11.5785,'Schneider Bräuhaus','Tal 7','בירת חיטה ו-Weißwurst.'],
+      [48.1393,11.5810,'Brenner Grill','Maximilianstraße 15','גריל באולם עם עמודים.'],
+      [48.1386,11.5770,'Dallmayr','Dienerstraße 14','מעדנייה ובית קפה היסטורי.'],
+      [48.1351,11.5763,'Viktualienmarkt','שוק האוכל','דוכנים, גבינות ואוכל חם.'],
+      [48.1346,11.5720,'Einstein · כשר','St.-Jakobs-Platz 18','מסעדה כשרה במרכז היהודי.']]}
+  ];
+  allBounds=L.latLngBounds([home]);
+  groups.forEach(g=>{
+    const group=L.layerGroup();
+    g.pts.forEach((p,i)=>{
+      L.marker([p[0],p[1]],{icon:L.divIcon({className:'numpin',html:'<div style="background:'+g.c+'">'+(i+1)+'</div>',iconSize:[26,26],iconAnchor:[13,13],popupAnchor:[0,-15]})})
+        .addTo(group).bindPopup('<b>'+p[2]+'</b><br><small style="color:#667">'+g.n+' · '+p[3]+'</small><br><span style="font-size:12.5px;line-height:1.45;display:block;margin-top:4px">'+p[4]+'</span>',{maxWidth:250});
+      allBounds.extend([p[0],p[1]]);
+    });
+    group.addTo(mapObj);
+    dayLayers.push({group:group,bounds:L.latLngBounds(g.pts.map(p=>[p[0],p[1]]).concat([home]))});
+  });
+  L.circleMarker(home,{radius:10,color:'#1C1C1B',weight:3,fillColor:'#FFD700',fillOpacity:1}).addTo(mapObj)
+    .bindPopup('<b>🏨 Platzl Hotel</b><br><span style="font-size:12.5px">Sparkassenstraße 10 · הבסיס, 3 לילות</span>');
+  setTimeout(()=>{ mapObj.invalidateSize(); mapObj.fitBounds(allBounds,{padding:[30,30]}); },120);
+}
+function showDay(which){
+  if(!mapObj)return;
+  dayLayers.forEach((dl,idx)=>{
+    if(which==='all' || idx===Number(which)) dl.group.addTo(mapObj); else mapObj.removeLayer(dl.group);
+  });
+  const b=(which==='all')?allBounds:dayLayers[Number(which)].bounds;
+  setTimeout(()=>{ mapObj.invalidateSize(); mapObj.fitBounds(b,{padding:[36,36]}); },80);
+}
+function setMapFS(on){
+  document.body.classList.toggle('mapfs',on);
+  if(on) window.scrollTo({top:0});
+  setTimeout(()=>{ if(mapObj) mapObj.invalidateSize(); },120);
+  setTimeout(()=>{ if(mapObj) mapObj.invalidateSize(); },400);
+}
+document.getElementById('fsbtn').addEventListener('click',()=>{ initMap(); setMapFS(true); });
+document.getElementById('fsclose').addEventListener('click',()=>setMapFS(false));
+document.querySelectorAll('.lgbtn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.lgbtn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    showDay(btn.dataset.day);
+  });
+});
+document.querySelector('.bn[data-view="view-map"]').addEventListener('click',initMap);
+
+// ---- offline shell ----
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
+
+// ---- auto-open today's day if within trip ----
+(function(){
+  const map={'2027-01-10':'d1','2027-01-11':'d2','2027-01-12':'d3','2027-01-13':'d4'};
+  const t=new Date(new Date().toLocaleString('en-US',{timeZone:'Europe/Berlin'}));
+  const today=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+  if(map[today]){ const chip=document.querySelector('.daychip[data-day="'+map[today]+'"]'); if(chip) chip.click(); }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="נסיעות עבודה">
+<meta name="theme-color" content="#1E2A33">
+<meta name="robots" content="noindex, nofollow">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="apple-touch-icon.png">
+<title>נסיעות עבודה · אלון וברקן</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Secular+One&family=Heebo:wght@300;400;500;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one column of "luggage tags" — now / upcoming / archive by year, with a year strip on top */
+:root{
+  --bg:#F3F4F1; --card:#FFFFFF; --ink:#1E2A33; --muted:#5E6B73; --line:#DADFDC;
+  --tag:#C9822B; --tag-soft:#F6E9D6; --go:#2F7D5B; --go-soft:#DDEFE6; --warn:#A8481E; --warn-soft:#F7E3DA;
+  --display:'Secular One','Heebo',system-ui,sans-serif; --body:'Heebo',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12181D; --card:#1B242B; --ink:#E8ECEA; --muted:#9AA7AE; --line:#2C3841;
+  --tag:#E0A04F; --tag-soft:#3A2D1C; --go:#62BE92; --go-soft:#1C3329; --warn:#E58A62; --warn-soft:#3A2219; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12181D; --card:#1B242B; --ink:#E8ECEA; --muted:#9AA7AE; --line:#2C3841;
+  --tag:#E0A04F; --tag-soft:#3A2D1C; --go:#62BE92; --go-soft:#1C3329; --warn:#E58A62; --warn-soft:#3A2219; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55;direction:rtl}
+.wrap{max-width:760px;margin:0 auto;padding-block:28px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:30px}
+header h1{font-family:var(--display);font-weight:400;font-size:clamp(28px,7vw,40px);line-height:1.1;margin:0;text-wrap:balance}
+header p{margin:6px 0 0;color:var(--muted)}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:.02em}
+h2{font-family:var(--display);font-weight:400;font-size:20px;margin:0 0 12px;display:flex;align-items:baseline;gap:10px}
+h2 small{font-family:var(--body);font-size:13px;color:var(--muted);font-weight:400}
+
+/* year strip */
+.strip{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px 10px;overflow-x:auto}
+.strip svg{display:block;min-width:560px;width:100%;height:auto}
+
+/* tag card */
+.tags{display:flex;flex-direction:column;gap:14px}
+.tag{position:relative;display:grid;grid-template-columns:96px 1fr;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;color:inherit;text-decoration:none}
+a.tag:hover,a.tag:focus-visible{border-color:var(--tag);outline:none}
+.tag .stub{background:var(--tag-soft);border-inline-end:2px dashed var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 6px;text-align:center;gap:2px}
+.stub .n{font-family:var(--display);font-size:32px;line-height:1;color:var(--tag)}
+.stub .u{font-size:12px;color:var(--muted)}
+.tag .main{padding:14px 16px;min-width:0;display:flex;flex-direction:column;gap:6px}
+.main h3{margin:0;font-family:var(--display);font-weight:400;font-size:21px;line-height:1.2}
+.meta{display:flex;flex-wrap:wrap;gap:4px 14px;color:var(--muted);font-size:13.5px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:12.5px;padding:2px 9px;border-radius:999px;background:var(--warn-soft);color:var(--warn)}
+.chip.ok{background:var(--go-soft);color:var(--go)}
+.go{font-size:13px;font-weight:500;color:var(--tag)}
+.tag.now{border-color:var(--go);box-shadow:0 0 0 2px var(--go-soft)}
+.tag.now .stub{background:var(--go-soft)}.tag.now .stub .n{color:var(--go)}
+
+/* archive */
+.year{display:flex;flex-direction:column;gap:6px}
+.year h4{margin:8px 0 2px;font-family:var(--mono);font-size:13px;color:var(--muted);letter-spacing:.08em}
+.row{display:grid;grid-template-columns:150px 1fr auto;gap:12px;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--line);font-size:14.5px}
+.row .d{color:var(--muted);font-size:13px}
+.row b{font-weight:500}
+.row .src{font-size:12px;color:var(--muted)}
+.row a{color:var(--tag);font-size:13px;text-decoration:none;font-weight:500}
+@media (max-width:520px){
+  .tag{grid-template-columns:76px 1fr}.stub .n{font-size:26px}
+  .row{grid-template-columns:1fr auto}.row .d{grid-column:1/-1;order:-1}
+}
+details.book{border-top:1px dashed var(--line);margin-top:4px;padding-top:6px}
+details.book summary{cursor:pointer;font-size:13.5px;font-weight:500;color:var(--ink);list-style:none}
+details.book summary::-webkit-details-marker{display:none}
+details.book[open] summary{margin-bottom:6px}
+.bk{padding:8px 0;border-bottom:1px solid var(--line);font-size:13.5px;display:flex;flex-direction:column;gap:2px}
+.bk:last-child{border-bottom:0}
+.bk b{font-weight:700}
+.bk .l{color:var(--muted)}
+.code{font-family:var(--mono);background:var(--tag-soft);color:var(--ink);border:0;border-radius:5px;padding:1px 7px;font-size:13px;cursor:pointer}
+.code.copied{background:var(--go-soft);color:var(--go)}
+footer{color:var(--muted);font-size:12.5px;border-top:1px solid var(--line);padding-top:14px}
+@media (prefers-reduced-motion:no-preference){a.tag{transition:border-color .15s}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>נסיעות עבודה</h1>
+    <p>הנסיעות של ווינטק לתערוכות ולספקים. לחיצה על נסיעה פותחת את האתר שלה, עם המסלול, המפה והמשימות.</p>
+  </header>
+
+  <section aria-labelledby="h-strip">
+    <h2 id="h-strip">השנה בנסיעות <small id="stripRange"></small></h2>
+    <div class="strip"><svg id="strip" viewBox="0 0 720 92" role="img" aria-label="ציר זמן של הנסיעות"></svg></div>
+  </section>
+
+  <section aria-labelledby="h-up">
+    <h2 id="h-up">הבאות</h2>
+    <div class="tags" id="upcoming"></div>
+  </section>
+
+  <section aria-labelledby="h-past">
+    <h2 id="h-past">היו <small>ארכיון</small></h2>
+    <div id="past"></div>
+  </section>
+
+  <footer>עודכן <span class="mono">26-10-2026</span> · מספרי הזמנה לא מופיעים כאן · תאריכים עם ~ משוערים</footer>
+</div>
+
+<script>
+// start/end: YYYY-MM-DD; approx:true = end date estimated from TripIt reminders
+const TRIPS=[
+ {id:'muc25',title:'מינכן · BAU 2025',start:'2025-01-12',end:'2025-01-15',approx:true,who:'',src:'TripIt'},
+ {id:'vie25',title:'וינה',start:'2025-02-24',end:'2025-02-28',approx:true,who:'',src:'TripIt'},
+ {id:'mil25',title:'מילאנו',start:'2025-11-19',end:'2025-11-22',approx:true,who:'',src:'TripIt'},
+ {id:'fra26',title:'פרנקפורט',start:'2026-03-23',end:'2026-03-26',who:'',src:'TripIt'},
+ {id:'ch26',title:'VITROCSA · חנוכת המטה',start:'2026-09-15',end:'2026-09-18',who:'',src:'איברדון, שווייץ'},
+ {id:'vnt26',title:'ציריך ← ונטו',start:'2026-11-01',end:'2026-11-03',who:'אלון וברקן',url:'veneto-2026/',
+   note:'Astec · Fabbio Design · Bettio',
+   done:['טיסות','Hyatt ציריך','Antony Palace','רכב Sixt'],
+   open:['חיבור 80 דק׳ בציריך ב-3.11 (מזוודה)','אישור מ-Bettio','רישיון נהיגה בינלאומי']},
+ {id:'muc27',title:'מינכן · BAU 2027',start:'2027-01-10',end:'2027-01-13',who:'אלון וברקן',url:'munich-bau-2027/',
+   note:'Messe München',done:['טיסות אל על של אלון','מלון Platzl'],open:['טיסה של ברקן','כרטיסי כניסה ל-BAU','פגישות ספקים']},
+ {id:'rt27',title:'שטוטגרט · R+T 2027',start:'2027-02-14',end:'2027-02-17',who:'אלון וברקן',url:'rt-stuttgart-2027/',
+   note:'תריסים, שערים, הצללה · התערוכה 15–19.2',done:['טיסות Lufthansa'],open:['מלון','פרנקפורט–שטוטגרט','כרטיסי כניסה','פגישות ספקים']},
+];
+
+const DAY=864e5;
+const d=s=>{const [y,m,dd]=s.split('-').map(Number);return new Date(y,m-1,dd)};
+const fmt=s=>s.split('-').reverse().join('-');
+const today=(()=>{const t=new Date();return new Date(t.getFullYear(),t.getMonth(),t.getDate())})();
+const nights=t=>Math.round((d(t.end)-d(t.start))/DAY);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+const sorted=[...TRIPS].sort((a,b)=>d(a.start)-d(b.start));
+const now=sorted.filter(t=>d(t.start)<=today&&today<=d(t.end));
+const up=sorted.filter(t=>d(t.start)>today);
+const past=sorted.filter(t=>d(t.end)<today).reverse();
+
+function card(t,isNow){
+  const days=Math.round((d(t.start)-today)/DAY);
+  const stub=isNow?`<span class="n">✈</span><span class="u">יום ${Math.round((today-d(t.start))/DAY)+1}</span>`
+    :`<span class="u">בעוד</span><span class="n mono">${days}</span><span class="u">${days===1?'יום':'ימים'}</span>`;
+  const chips=[...(t.done||[]).map(x=>`<span class="chip ok">✓ ${esc(x)}</span>`),...(t.open||[]).map(x=>`<span class="chip">⏳ ${esc(x)}</span>`)].join('');
+  const tag=t.url?'a':'div';
+  return `<${tag} class="tag${isNow?' now':''}"${t.url?` href="${t.url}" target="_blank" rel="noopener"`:''}>
+    <div class="stub">${stub}</div>
+    <div class="main">
+      <h3>${esc(t.title)}</h3>
+      <div class="meta"><span class="mono">${fmt(t.start)} – ${fmt(t.end)}</span><span>${nights(t)} לילות</span>${t.who?`<span>${esc(t.who)}</span>`:''}</div>
+      ${t.note?`<div class="meta">${esc(t.note)}</div>`:''}
+      ${chips?`<div class="chips">${chips}</div>`:''}
+      ${t.url?`<span class="go">לאתר הנסיעה ←</span>`:''}
+    </div></${tag}>`+(t.book?`<details class="book tag" style="display:block;padding:10px 16px;margin-top:-8px"><summary>🔒 פרטי הזמנות · ${t.title}</summary>${t.book.map(b=>`<div class="bk"><b>${esc(b.t)}</b>${(b.codes||[]).map(([k,v])=>`<span class="l">${esc(k)}: <button class="code" type="button" data-v="${esc(v)}" title="העתקה">${esc(v)}</button></span>`).join('')}${b.l.map(x=>`<span>${esc(x)}</span>`).join('')}</div>`).join('')}</details>`:'');
+}
+document.getElementById('upcoming').innerHTML=
+  now.map(t=>card(t,true)).join('')+up.map(t=>card(t,false)).join('')||'<p>אין נסיעות מתוכננות.</p>';
+
+const byYear={};past.forEach(t=>{(byYear[t.start.slice(0,4)]??=[]).push(t)});
+document.getElementById('past').innerHTML=Object.keys(byYear).sort().reverse().map(y=>
+ `<div class="year"><h4>${y}</h4>${byYear[y].map(t=>`<div class="row">
+   <span class="d mono">${fmt(t.start)}${t.approx?' ~':' – '+fmt(t.end)}</span>
+   <span><b>${esc(t.title)}</b>${t.who?` · <span class="src">${esc(t.who)}</span>`:''}</span>
+   ${t.url?`<a href="${t.url}" target="_blank" rel="noopener">לאתר ←</a>`:`<span class="src">${esc(t.src||'')}</span>`}
+ </div>`).join('')}</div>`).join('');
+
+document.addEventListener('click',e=>{const b=e.target.closest('.code');if(!b)return;
+  const done=()=>{b.classList.add('copied');setTimeout(()=>b.classList.remove('copied'),1200)};
+  try{navigator.clipboard.writeText(b.dataset.v).then(done,()=>{getSelection().selectAllChildren(b)})}catch(_){getSelection().selectAllChildren(b)}});
+
+// year strip: 12 months back to 6 months ahead
+(function(){
+  const svg=document.getElementById('strip'),W=720,L=10,R=710;
+  const from=new Date(today.getFullYear(),today.getMonth()-11,1),to=new Date(today.getFullYear(),today.getMonth()+4,1);
+  const x=dt=>W-(L+(dt-from)/(to-from)*(R-L)); // RTL: newer to the left
+  const css=getComputedStyle(document.documentElement),c=v=>css.getPropertyValue(v).trim();
+  let g=`<line x1="${L}" x2="${R}" y1="56" y2="56" stroke="${c('--line')}" stroke-width="2"/>`;
+  for(let m=new Date(from);m<=to;m=new Date(m.getFullYear(),m.getMonth()+1,1)){
+    const xx=x(m);g+=`<line x1="${xx}" x2="${xx}" y1="52" y2="60" stroke="${c('--line')}"/>`+
+      `<text x="${xx-20}" y="80" font-size="11" text-anchor="middle" fill="${c('--muted')}" font-family="IBM Plex Mono,monospace">${String(m.getMonth()+1).padStart(2,'0')}.${String(m.getFullYear()).slice(2)}</text>`;
+  }
+  sorted.filter(t=>d(t.end)>=from&&d(t.start)<=to).forEach((t,i)=>{
+    const x1=x(d(t.start)),x2=x(new Date(d(t.end).getTime()+DAY)),w=Math.max(6,x1-x2),fut=d(t.start)>today;
+    g+=`<rect x="${x2}" y="46" width="${w}" height="20" rx="4" fill="${fut?c('--tag'):c('--muted')}"><title>${t.title} · ${fmt(t.start)}</title></rect>`+
+       `<text x="${x2+w/2}" y="${i%2?36:24}" font-size="11.5" text-anchor="middle" fill="${c('--ink')}" font-family="Heebo,sans-serif">${t.title.split(' · ')[0].replace(' ← ','–')}</text>`;
+  });
+  const tx=x(today);g+=`<line x1="${tx}" x2="${tx}" y1="40" y2="70" stroke="${c('--go')}" stroke-width="2"/><text x="${tx}" y="90" font-size="11" text-anchor="middle" fill="${c('--go')}" font-family="Heebo,sans-serif">היום</text>`;
+  svg.innerHTML=g;
+  const my=dt=>String(dt.getMonth()+1).padStart(2,'0')+'-'+dt.getFullYear();
+  document.getElementById('stripRange').textContent=`${my(from)} עד ${my(to)}`;
+})();
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
+</script>
+</body></html>
