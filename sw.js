@@ -1,5 +1,5 @@
 // trips hub service worker — offline shell + map tiles
-const SHELL_CACHE = 'hub-shell-v1';
+const SHELL_CACHE = 'hub-shell-v2';
 const TILE_CACHE = 'hub-tiles-v1';
 const ASSET_CACHE = 'hub-assets-v1';
 
